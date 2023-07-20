@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "origami-expo",
-    "slug": "origami-expo",
+    "name": "origami",
+    "slug": "origami",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,27 +11,49 @@
       "resizeMode": "cover",
       "backgroundColor": "#DDD3C5"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera"
+      },
+      "bundleIdentifier": "com.buishi.origami"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#DDD3C5"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "package": "com.buishi.origami"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
     "scheme": "origami",
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      "react-native-vision-camera"
+    ],
+    "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
     "experiments": {
       "tsconfigPaths": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "5327d9b8-58af-4598-82e0-110fc1f71ad1"
+      }
     }
   }
 }

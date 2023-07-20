@@ -48,7 +48,7 @@ Trace:
 
 npm manifest: 
   {
-    "name": "origami-expo",
+    "name": "origami",
     "version": "1.0.0",
     "main": "expo-router/entry",
     "scripts": {
