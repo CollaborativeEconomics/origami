@@ -11,9 +11,7 @@
       "resizeMode": "cover",
       "backgroundColor": "#DDD3C5"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "config": {
@@ -29,21 +27,23 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#DDD3C5"
       },
-      "permissions": [
-        "android.permission.CAMERA"
-      ],
+      "permissions": ["android.permission.CAMERA"],
       "package": "com.buishi.origami"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "scheme": "origami",
+    "scheme": "cfceorigami",
     "plugins": [
       "expo-router",
-      "react-native-vision-camera"
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
+        }
+      ]
     ],
-    "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
     "experiments": {
       "tsconfigPaths": true
     },
@@ -53,6 +53,13 @@
       },
       "eas": {
         "projectId": "5327d9b8-58af-4598-82e0-110fc1f71ad1"
+      }
+    },
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/5327d9b8-58af-4598-82e0-110fc1f71ad1",
+      "requestHeaders": {
+        "expo-channel-name": "main"
       }
     }
   }

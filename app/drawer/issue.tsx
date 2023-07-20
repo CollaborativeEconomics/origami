@@ -3,6 +3,7 @@ import PageWrapper from '@/components/PageWrapper';
 import TextInput from '@/components/TextInput';
 import colors from '@/utils/colors';
 import fetchRegistry from '@/utils/fetchRegistry';
+import XummSdk from '@/utils/xumm';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,7 +22,17 @@ export default function Issue() {
     control,
     formState: { errors },
   } = useForm<IssueInput>();
-  const onSubmit: SubmitHandler<IssueInput> = data => console.log(data);
+  const onSubmit: SubmitHandler<IssueInput> = data => {
+    console.log(data);
+    XummSdk.payload.create({
+      txjson: {
+        TransactionType: 'EscrowCreate',
+        Account: data.recipient,
+        Destination: data.recipient,
+        amount: data.amount,
+      },
+    });
+  };
   // console.log(watch('amount')); // watch input value by passing the name of it
   const [recipient, amount] = watch(['recipient', 'amount']);
 
