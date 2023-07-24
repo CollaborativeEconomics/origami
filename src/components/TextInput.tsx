@@ -8,10 +8,13 @@ import {
   View,
 } from 'react-native';
 
-export default function TextInput(props: TextInputProps) {
+export default function TextInput({
+  label,
+  ...props
+}: TextInputProps & { label: string }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Label</Text>
+      <Text style={styles.label}>{label}</Text>
       <RNTextInput style={styles.input} {...props} />
     </View>
   );

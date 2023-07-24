@@ -11,7 +11,9 @@
       "resizeMode": "cover",
       "backgroundColor": "#DDD3C5"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "config": {
@@ -27,14 +29,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#DDD3C5"
       },
-      "permissions": ["android.permission.CAMERA"],
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
       "package": "com.buishi.origami"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "scheme": "cfceorigami",
+    "scheme": "origami",
     "plugins": [
       "expo-router",
       [
@@ -42,7 +46,8 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "experiments": {
       "tsconfigPaths": true

@@ -1,8 +1,9 @@
-import PageWrapper from 'src/components/PageWrapper';
 import { Image } from 'expo-image';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import colors from '@/utils/colors';
 import { Link } from 'expo-router';
+
+import PageWrapper from '@/components/PageWrapper';
+import colors from '@/utils/colors';
 
 export default function Home() {
   return (
