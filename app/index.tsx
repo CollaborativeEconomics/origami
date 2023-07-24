@@ -1,45 +1,44 @@
+import '@expo/browser-polyfill';
 import { useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { Redirect, SplashScreen, useFocusEffect, useRouter } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 import PageWrapper from '@/components/PageWrapper';
-import XummSdk from '@/utils/xumm';
+import { isJwtValid } from '@/utils/xummVanilla';
+import { storageReady } from '@/utils/storage';
 
 // SplashScreen.preventAutoHideAsync();
 
 export default function Root() {
+  console.log('Root', navigator);
   const router = useRouter();
 
   const checkAuthStatus = async () => {
-    // console.log(JSON.stringify(XummSdk));
-    // if (false) {
-    //   router.replace('/drawer');
-    // } else {
-    // }
-    const pong = await XummSdk.ping().catch(console.warn);
-    const jwt = XummSdk.environment.jwt;
-    console.log({ pong, jwt });
-    const userAccount = await XummSdk.user.account;
-    console.log({ userAccount });
+    const authorized = isJwtValid();
+    console.log({ authorized });
+    if (authorized) {
+      router.replace('/drawer');
+      return;
+    }
     router.replace('/auth');
   };
 
   useEffect(() => {
     checkAuthStatus();
-    XummSdk.on('ready', async () => {
-      console.log('ready!!!');
-    });
-    XummSdk.on('retrieved', async () => {
-      console.log('retrieved!!!');
-    });
-    return () => {
-      XummSdk.off('ready', () => {
-        console.log('ready off');
-      });
-      XummSdk.off('retrieved', () => {
-        console.log('retrieved off');
-      });
-    };
+    // XummSdk.on('ready', async () => {
+    //   console.log('ready!!!');
+    // });
+    // XummSdk.on('retrieved', async () => {
+    //   console.log('retrieved!!!');
+    // });
+    // return () => {
+    //   XummSdk.off('ready', () => {
+    //     console.log('ready off');
+    //   });
+    //   XummSdk.off('retrieved', () => {
+    //     console.log('retrieved off');
+    //   });
+    // };
     // await SplashScreen.hideAsync();
     // if (XummSdk.) {
     //   console.log(XummSdk.user);

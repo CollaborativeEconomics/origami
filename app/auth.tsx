@@ -1,6 +1,6 @@
 import PageWrapper from '@/components/PageWrapper';
 import colors from '@/utils/colors';
-import Xumm, { setXummJwt } from '@/utils/xumm';
+import { setXummJwt } from '@/utils/xummVanilla';
 import { AppOwnership } from 'expo-constants';
 import { Image } from 'expo-image';
 import { Linking, TouchableOpacity, View } from 'react-native';
@@ -101,8 +101,8 @@ export default function Auth() {
             style={{
               height: 80,
               width: '100%',
-              shadowColor: colors.black,
-              shadowOpacity: 0.25,
+              shadowColor: 'rgba(0,0,0,.25)',
+              // shadowOpacity: 0.25,
               shadowRadius: 2,
               shadowOffset: { height: 2, width: 0 },
             }}

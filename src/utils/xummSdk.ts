@@ -1,7 +1,7 @@
-// import { Xumm } from 'xumm';
-// import * as SecureStore from 'expo-secure-store';
+import { XummSdk } from 'xumm-sdk';
+import * as SecureStore from 'expo-secure-store';
 
-// let XummSdk = new Xumm(process.env.EXPO_PUBLIC_XUMM_API_KEY);
+let Xumm = new XummSdk(process.env.EXPO_PUBLIC_XUMM_API_KEY);
 // let Xumm = new XummPkce(process.env.EXPO_PUBLIC_XUMM_API_KEY, {
 //   redirectUrl: 'origami://',
 //   storage: {
@@ -17,17 +17,17 @@
 
 // console.log({ xapp: XummSdk.runtime.xapp });
 
-// const setXummJwt = (jwt: string) => {
-//   // XummSdk = new Xumm(process.env.EXPO_PUBLIC_XUMM_API_KEY);
-//   const NewSdk = new Xumm(jwt);
-//   SecureStore.setItemAsync('jwt', jwt);
-//   console.log('====================================');
-//   console.log('setXummJwt', NewSdk.environment.jwt);
-//   NewSdk.ping().then((res) => { console.log({ pong: res }) }).catch(console.warn)
-//   console.log('====================================');
-//   XummSdk = NewSdk;
-//   // Xumm = new XummPkce
-// };
+const setXummJwt = (jwt: string) => {
+  // XummSdk = new Xumm(process.env.EXPO_PUBLIC_XUMM_API_KEY);
+  const NewSdk = new XummSdk(jwt);
+  SecureStore.setItemAsync('jwt', jwt);
+  console.log('====================================');
+  // console.log('setXummJwt', NewSdk.environment.jwt);
+  NewSdk.ping().then((res) => { console.log({ pong: res }) }).catch(console.warn)
+  console.log('====================================');
+  Xumm = NewSdk;
+  // Xumm = new XummPkce
+};
 
 // const XummPkce = new PKCE({
 //   client_id: process.env.EXPO_PUBLIC_XUMM_API_KEY,
@@ -36,5 +36,5 @@
 //   token_endpoint: 'https://oauth2.xumm.app/token',
 //   requested_scopes: '*',
 // });
-// export { setXummJwt };
-// export default XummSdk;
+export { setXummJwt };
+export default XummSdk;

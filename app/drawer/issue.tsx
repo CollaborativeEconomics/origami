@@ -4,7 +4,6 @@ import PageWrapper from '@/components/PageWrapper';
 import TextInput from '@/components/TextInput';
 import colors from '@/utils/colors';
 import fetchRegistry from '@/utils/fetchRegistry';
-import XummSdk from '@/utils/xumm';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,6 +20,7 @@ import crypto from 'crypto';
 import * as SecureStore from 'expo-secure-store';
 import { toRippleTime } from '@/utils/ripple';
 import * as WebBrowser from 'expo-web-browser';
+import { signPayload } from '@/utils/xummApi';
 
 interface IssueInput {
   recipient: string;
@@ -70,25 +70,26 @@ export default function Issue() {
         },
       },
     };
-    const subscription = await XummSdk.payload
-      .createAndSubscribe(payload, event => {
-        console.log({ event });
-        if (event.data.signed === true) {
-          console.log('successfully signed!');
-          return event.data;
-        }
-        if (event.data.signed === false) {
-          console.log('uh oh, rejected!');
-        }
-      })
-      .catch(err => console.warn('payload error', err));
-    console.log({ subscription });
-    if (subscription) {
-      const stuff = await WebBrowser.openAuthSessionAsync(
-        subscription.created.next.always,
-      );
-      console.log({ stuff });
-    }
+    signPayload(payload);
+    // const subscription = await XummSdk.payload
+    //   .createAndSubscribe(payload, event => {
+    //     console.log({ event });
+    //     if (event.data.signed === true) {
+    //       console.log('successfully signed!');
+    //       return event.data;
+    //     }
+    //     if (event.data.signed === false) {
+    //       console.log('uh oh, rejected!');
+    //     }
+    //   })
+    //   .catch(err => console.warn('payload error', err));
+    // console.log({ subscription });
+    // if (subscription) {
+    //   const stuff = await WebBrowser.openAuthSessionAsync(
+    //     subscription.created.next.always,
+    //   );
+    //   console.log({ stuff });
+    // }
   };
   // console.log(watch('amount')); // watch input value by passing the name of it
   const [recipient, amount] = watch(['recipient', 'amount']);

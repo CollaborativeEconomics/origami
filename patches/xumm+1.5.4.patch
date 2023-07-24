@@ -1,0 +1,32 @@
+diff --git a/node_modules/xumm/dist/index.js b/node_modules/xumm/dist/index.js
+index 8fc261b..10352fe 100644
+--- a/node_modules/xumm/dist/index.js
++++ b/node_modules/xumm/dist/index.js
+@@ -36,6 +36,7 @@ const _runtime = {
+     cli: false,
+     browser: false,
+     xapp: false,
++    reactnative: false
+ };
+ const uuidv4re = new RegExp("^[0-9(a-f|A-F)]{8}-[0-9(a-f|A-F)]{4}-4[0-9(a-f|A-F)]{3}-[89ab][0-9(a-f|A-F)]{3}-[0-9(a-f|A-F)]{12}$");
+ const _classes = {};
+@@ -55,6 +56,10 @@ Object.assign(_runtime, {
+ Object.assign(_runtime, {
+     xapp: _runtime.browser && !!navigator.userAgent.match(/xumm\/xapp/i),
+ });
++
++Object.assign(_runtime, {
++    reactnative: navigator.product === "ReactNative",
++});
+ const runtime = Object.keys(_runtime).filter((r) => _runtime[r]);
+ const readyPromises = [];
+ /**
+@@ -344,7 +349,7 @@ class Xumm extends events_1.EventEmitter {
+             readyPromises.push(handleXappEvents());
+             initOttJwtRuntime();
+         }
+-        else if (_runtime.browser) {
++        else if (_runtime.browser || _runtime.reactnative) {
+             /**
+              * Browser (JWT, PKCE?)
+              */
