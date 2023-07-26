@@ -18,7 +18,7 @@ import {
 import crypto from 'crypto';
 // import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
-import { toRippleTime } from '@/utils/ripple';
+import { toRippleTime, unixTimeToRippleTime, xrpToDrops } from '@/utils/ripple';
 import * as WebBrowser from 'expo-web-browser';
 import { signPayload } from '@/utils/xummApi';
 
@@ -56,12 +56,15 @@ export default function Issue() {
     // );
     const payload: XummPostPayloadBodyJson = {
       txjson: {
-        TransactionType: 'EscrowCreate',
         Account: data.recipient,
+        Amount: xrpToDrops(data.amount),
+        CancelAfter: unixTimeToRippleTime(Date.now() + 1000 * 60 * 60 * 24),
         Destination: data.recipient,
-        Amount: data.amount,
-        Condition: condition,
-        CancelAfter: toRippleTime(new Date(Date.now() + 1000 * 60 * 60 * 24)),
+        Flags: 0,
+        // LedgerEntryType: 'Escrow',
+        // OwnerNode: '0000000000000000',
+        TransactionType: 'EscrowCreate',
+        // Condition: condition,
       },
       options: {
         return_url: {
@@ -94,12 +97,12 @@ export default function Issue() {
   // console.log(watch('amount')); // watch input value by passing the name of it
   const [recipient, amount] = watch(['recipient', 'amount']);
 
-  const { isLoading, error, data } = useQuery({
-    queryKey: ['orgByWalletAddress', recipient],
-    queryFn: () => fetchRegistry(`organizations?wallet=${recipient}`),
-  });
+  // const { isLoading, error, data } = useQuery({
+  //   queryKey: ['orgByWalletAddress', recipient],
+  //   queryFn: () => fetchRegistry(`organizations?wallet=${recipient}`),
+  // });
 
-  const orgName = data?.data?.[0]?.name;
+  // const orgName = data?.data?.[0]?.name;
 
   // console.log(Object.keys(data));
 
@@ -107,7 +110,7 @@ export default function Issue() {
     <PageWrapper style={{ paddingHorizontal: 0 }}>
       <View style={styles.container}>
         <View style={styles.cardContainer}>
-          <Card organization={orgName} amount={amount} />
+          <Card organization={'orgName'} amount={amount} />
         </View>
         <View style={styles.formContainer}>
           <Controller
