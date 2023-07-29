@@ -13,12 +13,12 @@ import {
 } from 'expo-auth-session';
 import { useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const redirectUri = `origami://`;
-// const returnUri = AppOwnership.Expo
+// const redirectUri = AppOwnership.Expo
 //   ? `exp://u.expo.dev/5327d9b8-58af-4598-82e0-110fc1f71ad1?channel-name=preview&runtime-version=1.0.0`
-//   : `origami://signin`;
+//   : `origami://`;
 
 const authorizationEndpoint = 'https://oauth2.xumm.app/auth';
 const discoveryEndpoint =
@@ -42,8 +42,9 @@ export default function Auth() {
     discovery,
   );
   const router = useRouter();
+  const params = useLocalSearchParams();
   console.log('====================================');
-  console.log(response);
+  console.log({ response, params });
   console.log('====================================');
   useEffect(() => {
     if (response?.type === 'success') {

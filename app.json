@@ -12,13 +12,19 @@
       "backgroundColor": "#DDD3C5"
     },
     "assetBundlePatterns": ["**/*"],
+    "jsengine": "hermes",
     "ios": {
       "supportsTablet": true,
       "config": {
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera"
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera",
+        "NSBluetoothAlwaysUsageDescription": "Allow $(PRODUCT_NAME) to access your bluetooth printer",
+        "UISupportedExternalAccessoryProtocols": [
+          "com.epson.escpos",
+          "com.RT.RTPrinter.Pro"
+        ]
       },
       "bundleIdentifier": "com.buishi.origami"
     },
@@ -27,7 +33,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#DDD3C5"
       },
-      "permissions": ["android.permission.CAMERA"],
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT"
+      ],
       "package": "com.buishi.origami"
     },
     "web": {
@@ -49,6 +63,12 @@
           "ios": {
             "flipper": true
           }
+        }
+      ],
+      [
+        "expo-barcode-scanner",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access camera."
         }
       ]
     ],

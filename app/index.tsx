@@ -13,61 +13,67 @@ export default function Root() {
   console.log('Root', navigator);
   const router = useRouter();
 
-  const checkAuthStatus = async () => {
-    const authorized = isJwtValid();
-    console.log({ authorized });
-    if (authorized) {
-      router.replace('/drawer');
-      return;
-    }
-    router.replace('/auth');
-  };
+  const authorized = isJwtValid();
+  // const checkAuthStatus = () => {
+  //   console.log({ authorized });
+  //   if (authorized) {
+  //     router.replace('/drawer');
+  //     return;
+  //   }
+  //   router.replace('/auth');
+  // };
 
-  useEffect(() => {
-    checkAuthStatus();
-    // XummSdk.on('ready', async () => {
-    //   console.log('ready!!!');
-    // });
-    // XummSdk.on('retrieved', async () => {
-    //   console.log('retrieved!!!');
-    // });
-    // return () => {
-    //   XummSdk.off('ready', () => {
-    //     console.log('ready off');
-    //   });
-    //   XummSdk.off('retrieved', () => {
-    //     console.log('retrieved off');
-    //   });
-    // };
-    // await SplashScreen.hideAsync();
-    // if (XummSdk.) {
-    //   console.log(XummSdk.user);
-    //   router.replace('/drawer');
-    // } else {
-    //   router.replace('/auth');
-    // }
-    // router.replace('/drawer');
-    //   SecureStore.getItemAsync('jwt')
-    //     .then(async jwt => {
-    //       console.log('====================================');
-    //       console.log({ jwt });
-    //       console.log('====================================');
-    //       if (jwt) {
-    //         XummSdk.
-    //         router.replace('/drawer');
-    //       } else {
-    //         router.replace('/auth');
-    //       }
-    //     })
-    //     .catch(console.warn);
-  }, []);
+  // useEffect(() => {
+  // setTimeout(() => {
+  // checkAuthStatus();
+  // }, 1);
+  // XummSdk.on('ready', async () => {
+  //   console.log('ready!!!');
+  // });
+  // XummSdk.on('retrieved', async () => {
+  //   console.log('retrieved!!!');
+  // });
+  // return () => {
+  //   XummSdk.off('ready', () => {
+  //     console.log('ready off');
+  //   });
+  //   XummSdk.off('retrieved', () => {
+  //     console.log('retrieved off');
+  //   });
+  // };
+  // await SplashScreen.hideAsync();
+  // if (XummSdk.) {
+  //   console.log(XummSdk.user);
+  //   router.replace('/drawer');
+  // } else {
+  //   router.replace('/auth');
+  // }
+  // router.replace('/drawer');
+  //   SecureStore.getItemAsync('jwt')
+  //     .then(async jwt => {
+  //       console.log('====================================');
+  //       console.log({ jwt });
+  //       console.log('====================================');
+  //       if (jwt) {
+  //         XummSdk.
+  //         router.replace('/drawer');
+  //       } else {
+  //         router.replace('/auth');
+  //       }
+  //     })
+  //     .catch(console.warn);
+  // }, []);
 
-  useFocusEffect(() => {
-    checkAuthStatus();
-    // console.log('useFocusEffect');
-    // router.replace('/drawer');
-  });
-  // return <Redirect href="/drawer" />;
+  // useFocusEffect(() => {
+  //   checkAuthStatus();
+  // console.log('useFocusEffect');
+  // router.replace('/drawer');
+  // });
+  if (authorized) {
+    return <Redirect href="/drawer" />;
+  } else {
+    return <Redirect href="/auth" />;
+  }
   return (
     <PageWrapper unsafe style={{ justifyContent: 'center' }}>
       <ActivityIndicator />

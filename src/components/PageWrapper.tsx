@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { PropsWithChildren } from 'react';
-import { StyleSheet, View, ViewProps } from 'react-native';
+import { ScrollView, StyleSheet, View, ViewProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '@/utils/colors';
 
@@ -11,7 +11,7 @@ const PageWrapper = ({
   ...props
 }: PropsWithChildren<ViewProps & { unsafe?: boolean }>) => {
   return (
-    <View style={[styles.container, style]} {...props}>
+    <ScrollView contentContainerStyle={[styles.container, style]} {...props}>
       <LinearGradient
         // Background Linear Gradient
         colors={[colors.white, colors.backgroundDarker]}
@@ -22,7 +22,7 @@ const PageWrapper = ({
       ) : (
         <SafeAreaView style={styles.safeView}>{children}</SafeAreaView>
       )}
-    </View>
+    </ScrollView>
   );
 };
 

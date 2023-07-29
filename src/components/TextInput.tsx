@@ -7,15 +7,38 @@ import {
   TextInputProps,
   View,
 } from 'react-native';
+import { MaterialIcons as Icons } from '@expo/vector-icons';
 
-export default function TextInput({
-  label,
-  ...props
-}: TextInputProps & { label: string }) {
+interface Props extends TextInputProps {
+  label: string;
+  icons: Array<{
+    icon?: (typeof Icons)['defaultProps']['name'];
+    onIconPress?: () => void;
+  }>;
+}
+
+export default function TextInput({ label, icons = [], ...props }: Props) {
+  console.log({ icons });
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <RNTextInput style={styles.input} {...props} />
+      <View style={{ justifyContent: 'center' }}>
+        <RNTextInput style={styles.input} {...props} />
+        <View style={{ flexDirection: 'row', position: 'absolute', right: 10 }}>
+          {icons.map(({ icon, onIconPress }) => (
+            <Icons
+              style={{
+                color: colors.text,
+                marginLeft: 10,
+              }}
+              name={icon}
+              size={24}
+              onPress={onIconPress}
+            />
+          ))}
+        </View>
+      </View>
     </View>
   );
 }

@@ -1,6 +1,6 @@
 import storage from "./storage"
 
-const parseJwt = (token: string) => {
+export const parseJwt = (token: string) => {
   try {
     return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString("utf8"));
   } catch (e) {
