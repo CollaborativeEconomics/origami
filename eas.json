@@ -12,7 +12,8 @@
       "ios": {
         "buildConfiguration": "Debug"
       },
-      "channel": "development"
+      "channel": "development",
+      "cache": { "key": "version-2" }
     },
     "preview": {
       "distribution": "internal",

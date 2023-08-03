@@ -60,15 +60,24 @@ export default function Issue() {
   useEffect(() => {
     const initializePrinters = async () => {
       let printer;
-      if (Platform.OS === 'ios') {
-        const pairingStatus =
-          await EscPosPrinter.pairingBluetoothPrinter().catch(console.warn);
-        console.log({ pairingStatus });
-      } else {
-        const printers = await EscPosPrinter.discover();
-        console.log({ printers });
-        printer = printers[0];
-      }
+      console.log(Platform.OS);
+
+      const blueToothEnabled = await BluetoothManager.isBluetoothEnabled();
+      const devices = await BluetoothManager.scanDevices();
+      console.log({ devices });
+      // BluetoothManager.connect();
+
+      // EscPosPrinter
+      // if (Platform.OS === 'ios') {
+      //   const pairingStatus =
+      //     await EscPosPrinter.pairingBluetoothPrinter().catch(console.warn);
+      //   console.log({ pairingStatus });
+      // }
+      // // else {
+      // const printers = await EscPosPrinter.discover();
+      // console.log({ printers });
+      // printer = printers[0];
+      // }
     };
     initializePrinters();
   }, []);
@@ -168,7 +177,9 @@ export default function Issue() {
     signPayload(payload);
   };
 
-  const handlePrint = useCallback(() => {}, [printEnabled]);
+  const handlePrint = useCallback(() => {
+    router.replace('/drawer/findPrinter');
+  }, [printEnabled]);
 
   return (
     <PageWrapper style={{ paddingHorizontal: 0 }}>

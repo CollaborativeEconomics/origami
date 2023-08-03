@@ -12,7 +12,7 @@
       "backgroundColor": "#DDD3C5"
     },
     "assetBundlePatterns": ["**/*"],
-    "jsengine": "hermes",
+    "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
       "config": {
@@ -69,6 +69,14 @@
         "expo-barcode-scanner",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access camera."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "flipper": false
+          }
         }
       ]
     ],
