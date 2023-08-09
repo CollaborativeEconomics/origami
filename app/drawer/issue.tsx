@@ -18,11 +18,9 @@ import {
 } from 'react-native';
 import crypto from 'crypto';
 // import * as Crypto from 'expo-crypto';
-import * as SecureStore from 'expo-secure-store';
 import { toRippleTime, unixTimeToRippleTime, xrpToDrops } from '@/utils/ripple';
 import * as WebBrowser from 'expo-web-browser';
 import { ping, signPayload } from '@/utils/xummApi';
-import cc from 'five-bells-condition';
 import { useCallback, useEffect, useState } from 'react';
 import * as Clipboard from 'expo-clipboard';
 import * as Camera from 'expo-camera';
@@ -31,80 +29,74 @@ import Receipt from '@/components/Receipt';
 import storage from '@/utils/storage';
 import { useMMKVString } from 'react-native-mmkv';
 import { parseJwt } from '@/utils/xummVanilla';
-import EscPosPrinter, {
-  getPrinterSeriesByName,
-} from 'react-native-esc-pos-printer';
+import { generateCondition } from '@/utils/generateCondition';
+// import EscPosPrinter, {
+//   getPrinterSeriesByName,
+// } from 'react-native-esc-pos-printer';
 
-interface IssueInput {
+export interface IssueInput {
   recipient: string;
+  authorizedPerson: string;
   amount: string;
 }
 
 export default function Issue() {
+  const {
+    txid,
+    recipient: recipientParam,
+    ...params
+  } = useLocalSearchParams<{
+    recipient: string;
+    txid: string;
+  }>();
   const {
     handleSubmit,
     watch,
     control,
     setValue,
     formState: { errors },
-  } = useForm<IssueInput>();
+  } = useForm<IssueInput>({
+    defaultValues: {
+      recipient: recipientParam,
+    },
+  });
   const [printEnabled, setPrintEnabled] = useState(false);
   const [expirationDate, setExpirationDate] = useState(
     Date.now() + 1000 * 60 * 60 * 24,
   );
+  const [fulfillment, setFulfillment] = useState('');
+  const [qrData, setQRData] = useState('');
   const router = useRouter();
-  const params = useLocalSearchParams();
-  console.log({ params });
 
-  // initialize printer
-  useEffect(() => {
-    const initializePrinters = async () => {
-      let printer;
-      console.log(Platform.OS);
-
-      const blueToothEnabled = await BluetoothManager.isBluetoothEnabled();
-      const devices = await BluetoothManager.scanDevices();
-      console.log({ devices });
-      // BluetoothManager.connect();
-
-      // EscPosPrinter
-      // if (Platform.OS === 'ios') {
-      //   const pairingStatus =
-      //     await EscPosPrinter.pairingBluetoothPrinter().catch(console.warn);
-      //   console.log({ pairingStatus });
-      // }
-      // // else {
-      // const printers = await EscPosPrinter.discover();
-      // console.log({ printers });
-      // printer = printers[0];
-      // }
-    };
-    initializePrinters();
-  }, []);
+  // initialize
+  useEffect(() => {}, []);
 
   // handle params
   useEffect(() => {
-    if (params.data) {
-      setValue('recipient', params.data);
-      router.setParams({ data: null });
+    if (recipientParam) {
+      setValue('recipient', recipientParam);
+      router.setParams({ recipient: null });
     }
-    if (params.txid) {
+    if (txid) {
       setPrintEnabled(true);
       storage.set(
         'tx',
         JSON.stringify({
-          txid: params.txid,
+          txid: txid,
           cid: params.cid,
           id: params.id,
           txblob: params.txblob,
         }),
       );
-      router.setParams({ txid: null, cid: null, id: null, txblob: null });
+      // router.setParams({ txid: null, cid: null, id: null, txblob: null });
     }
-  }, [params.txid]);
+  }, [txid, recipientParam]);
 
-  // console.log(watch('amount')); // watch input value by passing the name of it
-  const [recipient, amount] = watch(['recipient', 'amount']);
+  const [recipient, authorizedPerson, amount] = watch([
+    'recipient',
+    'authorizedPerson',
+    'amount',
+  ]);
 
   const { isLoading, error, data } = useQuery({
     queryKey: ['orgByWalletAddress', recipient],
@@ -125,76 +117,52 @@ export default function Issue() {
   });
   const senderName = senderData?.data?.[0]?.name;
 
-  const onSubmit: SubmitHandler<IssueInput> = async data => {
-    console.log(data);
+  const handlePrint = useCallback(() => {
+    // router.replace('/drawer/findPrinter');
+  }, [printEnabled]);
 
-    const preimageData = crypto.randomBytes(32) as Buffer;
-    const fulfillment = new cc.PreimageSha256();
-    fulfillment.setPreimage(preimageData);
-    const condition = fulfillment
-      .getConditionBinary()
-      .toString('hex')
-      .toUpperCase();
-    const fulfillmentHex = fulfillment
-      .serializeBinary()
-      .toString('hex')
-      .toUpperCase();
-    // Convert the preimage to a hexadecimal string
-    // const preimageHex = preimage.toString('hex');
-
-    // Generate the condition as a SHA-256 hash of the preimage
-    // let hash = crypto.createHash('sha256');
-    // hash.update(preimage);
-    // let condition = hash.digest('hex').toUpperCase();
-    await SecureStore.setItemAsync('preimage', fulfillmentHex);
-    await SecureStore.setItemAsync('condition', condition);
-    console.log('====================================');
-    console.log({ fulfillmentHex, condition });
-    console.log('====================================');
-    // await Crypto.digestStringAsync(
-    //   Crypto.CryptoDigestAlgorithm.SHA256,
-    //   preimage,
-    // );
-    const options = {
-      return_url: {
-        app: 'origami://drawer/issue?id={id}&cid={cid}&txid={txid}&txblob={txblob}',
-        web: 'origami://drawer/issue?id={id}&cid={cid}&txid={txid}&txblob={txblob}',
-      },
-    };
+  const onSubmit = handleSubmit(async (formData: IssueInput) => {
+    const { condition, fulfillmentHex } = await generateCondition(formData);
+    setFulfillment(fulfillmentHex);
     const payload: XummPostPayloadBodyJson = {
       txjson: {
         Account: sender,
-        Amount: xrpToDrops(data.amount),
+        Amount: xrpToDrops(formData.amount),
         CancelAfter: unixTimeToRippleTime(expirationDate),
         // FinishAfter: unixTimeToRippleTime(Date.now() + 1000 * 60),
-        Destination: data.recipient,
+        Destination: formData.recipient,
         TransactionType: 'EscrowCreate',
         Condition: condition,
       },
-      options,
+      options: {
+        return_url: {
+          app: 'origami://drawer/issue?id={id}&cid={cid}&txid={txid}&txblob={txblob}',
+          web: 'origami://drawer/issue?id={id}&cid={cid}&txid={txid}&txblob={txblob}',
+        },
+      },
     };
-
     signPayload(payload);
-  };
+  });
 
-  const handlePrint = useCallback(() => {
-    router.replace('/drawer/findPrinter');
-  }, [printEnabled]);
+  console.log({ base64Value: qrData, txid });
 
   return (
     <PageWrapper style={{ paddingHorizontal: 0 }}>
       <View style={styles.container}>
-        <View style={styles.cardContainer}>
-          {/* <Card organization={'recipientName'} amount={amount} /> */}
-          <Receipt
-            senderName={senderName}
-            sender={sender}
-            recipient={recipient}
-            recipientName={recipientName}
-            amount={amount}
-            expirationDate={expirationDate}
-          />
-        </View>
+        <Receipt
+          senderName={senderName}
+          sender={sender}
+          recipient={recipient}
+          recipientName={recipientName}
+          authorizedPerson={authorizedPerson}
+          amount={amount}
+          expirationDate={expirationDate}
+          qrData={`origami://drawer/issue?t=${txid ?? 'txid'}&f=${
+            fulfillment ?? 'fulfillment'
+          }&u=${authorizedPerson ?? ''}`}
+          message=""
+          setBase64Value={setQRData}
+        />
         <View style={styles.formContainer}>
           <Controller
             name="recipient"
@@ -212,7 +180,9 @@ export default function Issue() {
                     onIconPress: async () => {
                       // const text = await Camera.;
                       // onChange(text);
-                      router.replace(`/scanQrCode?routeOrigin=/drawer/issue`);
+                      router.replace(
+                        `/scanQrCode?routeOrigin=/drawer/issue&dataKey=recipient`,
+                      );
                     },
                   },
                   {
@@ -223,6 +193,18 @@ export default function Issue() {
                     },
                   },
                 ]}
+              />
+            )}
+          />
+          <Controller
+            name="authorizedPerson"
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                label="Authorized Person"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
               />
             )}
           />
@@ -277,12 +259,12 @@ export default function Issue() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   cardContainer: { flex: 1, justifyContent: 'space-around' },
   formContainer: {
+    marginTop: 20,
     paddingTop: 20,
     paddingHorizontal: 20,
     borderTopWidth: 1,

@@ -1,6 +1,7 @@
 import { MMKV } from 'react-native-mmkv'
 import crypto from 'crypto';
 import * as SecureStore from 'expo-secure-store';
+import { PersistStorage, StateStorage } from 'zustand/middleware';
 
 let storage = new MMKV();
 // {} as MMKV;
@@ -29,6 +30,12 @@ const storageReady = () => new Promise(resolve => {
   return checkStatus();
 });
 
-export { storageReady }
+const storagePersist: StateStorage = {
+  setItem: (name: string, value: string) => storage.set(name, value),
+  getItem: (name: string) => storage.getString(name) ?? null,
+  removeItem: (name: string) => storage.delete(name)
+}
+
+export { storageReady, storagePersist }
 
 export default storage;

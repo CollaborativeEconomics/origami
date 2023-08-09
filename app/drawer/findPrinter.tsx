@@ -7,11 +7,11 @@ import {
   Text,
   ActivityIndicator,
 } from 'react-native';
-import {
-  NetPrinterEventEmitter,
-  RN_THERMAL_RECEIPT_PRINTER_EVENTS,
-  NetPrinter,
-} from 'react-native-thermal-receipt-printer-image-qr';
+// import {
+//   NetPrinterEventEmitter,
+//   RN_THERMAL_RECEIPT_PRINTER_EVENTS,
+//   NetPrinter,
+// } from 'react-native-thermal-receipt-printer-image-qr';
 
 export interface DeviceType {
   host: string;
@@ -28,30 +28,30 @@ export const FindPrinter = () => {
   React.useEffect(() => {
     if (devices.length === 0) {
       setLoading(true);
-      NetPrinterEventEmitter.addListener(
-        RN_THERMAL_RECEIPT_PRINTER_EVENTS.EVENT_NET_PRINTER_SCANNED_SUCCESS,
-        (printers: DeviceType[]) => {
-          console.log({ printers });
-          if (printers) {
-            console.log({ printers });
-            setLoading(false);
-            setDevices(printers);
-          }
-        },
-      );
+      // NetPrinterEventEmitter.addListener(
+      //   RN_THERMAL_RECEIPT_PRINTER_EVENTS.EVENT_NET_PRINTER_SCANNED_SUCCESS,
+      //   (printers: DeviceType[]) => {
+      //     console.log({ printers });
+      //     if (printers) {
+      //       console.log({ printers });
+      //       setLoading(false);
+      //       setDevices(printers);
+      //     }
+      //   },
+      // );
       (async () => {
         const results = await NetPrinter.getDeviceList();
         console.log({ results });
       })();
     }
-    return () => {
-      NetPrinterEventEmitter.removeAllListeners(
-        RN_THERMAL_RECEIPT_PRINTER_EVENTS.EVENT_NET_PRINTER_SCANNED_SUCCESS,
-      );
-      NetPrinterEventEmitter.removeAllListeners(
-        RN_THERMAL_RECEIPT_PRINTER_EVENTS.EVENT_NET_PRINTER_SCANNED_ERROR,
-      );
-    };
+    // return () => {
+    //   NetPrinterEventEmitter.removeAllListeners(
+    //     RN_THERMAL_RECEIPT_PRINTER_EVENTS.EVENT_NET_PRINTER_SCANNED_SUCCESS,
+    //   );
+    //   NetPrinterEventEmitter.removeAllListeners(
+    //     RN_THERMAL_RECEIPT_PRINTER_EVENTS.EVENT_NET_PRINTER_SCANNED_ERROR,
+    //   );
+    // };
   }, []);
 
   if (loading) {

@@ -18,8 +18,6 @@ interface Props extends TextInputProps {
 }
 
 export default function TextInput({ label, icons = [], ...props }: Props) {
-  console.log({ icons });
-
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>

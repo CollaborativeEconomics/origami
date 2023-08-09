@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { captureRef } from 'react-native-view-shot';
 
 interface Props {
   recipient: string;
@@ -10,7 +11,9 @@ interface Props {
   senderName?: string;
   expirationDate: string;
   message?: string;
+  authorizedPerson?: string;
   qrData: string;
+  setBase64Value?: (base64Value: string) => void;
 }
 
 const Receipt = ({
@@ -19,10 +22,21 @@ const Receipt = ({
   expirationDate,
   sender,
   senderName,
+  authorizedPerson,
   message,
   qrData,
   amount,
+  setBase64Value,
 }) => {
+  const qrRef = useRef(null);
+  useEffect(() => {
+    captureRef(qrRef, {
+      format: 'png',
+      quality: 1,
+      result: 'base64',
+    }).then(setBase64Value);
+  }, [qrData]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.largeBoldText}>{recipientName || recipient}</Text>
@@ -45,11 +59,12 @@ const Receipt = ({
       >
         ====================================================
       </Text>
-      <Text>Issued by {senderName || sender}</Text>
+      {authorizedPerson && <Text>ID Required for {authorizedPerson}</Text>}
+      <Text style={styles.textRow}>Issued by {senderName || sender}</Text>
       {senderName && <Text>{sender}</Text>}
-      <Text>{message}</Text>
+      <Text style={styles.textRow}>{message}</Text>
       <View style={styles.emptySpace} />
-      <View style={{ alignItems: 'center' }}>
+      <View style={styles.qrWrapper} ref={qrRef}>
         <QRCode value={qrData} size={120} />
       </View>
     </View>
@@ -85,6 +100,10 @@ const styles = StyleSheet.create({
     flex: 1,
     // minHeight: 40,
   },
+  textRow: {
+    marginBottom: 5,
+  },
+  qrWrapper: { alignItems: 'center' },
 });
 
 export default Receipt;
