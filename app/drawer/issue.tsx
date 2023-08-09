@@ -16,12 +16,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import crypto from 'crypto';
 // import * as Crypto from 'expo-crypto';
 import { toRippleTime, unixTimeToRippleTime, xrpToDrops } from '@/utils/ripple';
 import * as WebBrowser from 'expo-web-browser';
+import * as Print from 'expo-print';
 import { ping, signPayload } from '@/utils/xummApi';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as Clipboard from 'expo-clipboard';
 import * as Camera from 'expo-camera';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -30,6 +30,9 @@ import storage from '@/utils/storage';
 import { useMMKVString } from 'react-native-mmkv';
 import { parseJwt } from '@/utils/xummVanilla';
 import { generateCondition } from '@/utils/generateCondition';
+import textToHex from '@/utils/textToHex';
+import getReceiptForPrint from '@/utils/getReceiptForPrint';
+import useOrigamiStore from '@/store/useOrigamiStore';
 // import EscPosPrinter, {
 //   getPrinterSeriesByName,
 // } from 'react-native-esc-pos-printer';
@@ -37,6 +40,7 @@ import { generateCondition } from '@/utils/generateCondition';
 export interface IssueInput {
   recipient: string;
   authorizedPerson: string;
+  message: string;
   amount: string;
 }
 
@@ -65,8 +69,10 @@ export default function Issue() {
     Date.now() + 1000 * 60 * 60 * 24,
   );
   const [fulfillment, setFulfillment] = useState('');
-  const [qrData, setQRData] = useState('');
+  const [conditionString, setCondition] = useState('');
+  const [QRBase64, setQRBase64] = useState('');
   const router = useRouter();
+  const { addTransaction } = useOrigamiStore();
 
   // initialize
   useEffect(() => {}, []);
@@ -79,6 +85,7 @@ export default function Issue() {
     }
     if (txid) {
       setPrintEnabled(true);
+      addTransaction({ txId: txid, fulfillment, condition: conditionString });
       storage.set(
         'tx',
         JSON.stringify({
@@ -92,9 +99,10 @@ export default function Issue() {
     }
   }, [txid, recipientParam]);
 
-  const [recipient, authorizedPerson, amount] = watch([
+  const [recipient, authorizedPerson, message, amount] = watch([
     'recipient',
     'authorizedPerson',
+    'message',
     'amount',
   ]);
 
@@ -106,7 +114,6 @@ export default function Issue() {
   const recipientName = data?.data?.[0]?.name;
 
   const [jwt] = useMMKVString('jwt');
-  console.log({ jwt });
   const { sub: sender } = parseJwt(jwt);
   const {
     isLoading: senderIsLoading,
@@ -118,13 +125,36 @@ export default function Issue() {
   });
   const senderName = senderData?.data?.[0]?.name;
 
-  const handlePrint = useCallback(() => {
-    // router.replace('/drawer/findPrinter');
-  }, [printEnabled]);
+  const qrDataUrl = useMemo(
+    () =>
+      `origami://drawer/redeem?txid=${txid ?? 'txid'}&fulfillment=${
+        fulfillment ?? 'fulfillment'
+      }&authorizedUser=${authorizedPerson ?? ''}&message=${
+        message ?? ''
+      }&owner=${sender}&condition=${conditionString}`,
+    [txid, fulfillment, authorizedPerson, message, sender, conditionString],
+  );
+
+  const handlePrint = () => {
+    const html = getReceiptForPrint({
+      recipient,
+      recipientName,
+      sender,
+      senderName,
+      authorizedPerson,
+      amount,
+      expirationDate,
+      message,
+      qrData: QRBase64,
+      qrDataUrl,
+    });
+    Print.printAsync({ html });
+  };
 
   const onSubmit = handleSubmit(async (formData: IssueInput) => {
     const { condition, fulfillmentHex } = await generateCondition(formData);
     setFulfillment(fulfillmentHex);
+    setCondition(condition);
     const payload: XummPostPayloadBodyJson = {
       txjson: {
         Account: sender,
@@ -134,6 +164,14 @@ export default function Issue() {
         Destination: formData.recipient,
         TransactionType: 'EscrowCreate',
         Condition: condition,
+        ...(formData.authorizedPerson
+          ? {
+              Memo: {
+                MemoType: textToHex('Authorized Person'),
+                MemoData: textToHex(formData.authorizedPerson),
+              },
+            }
+          : {}),
       },
       options: {
         return_url: {
@@ -144,8 +182,6 @@ export default function Issue() {
     };
     signPayload(payload);
   });
-
-  console.log({ base64Value: qrData, txid });
 
   return (
     <PageWrapper style={{ paddingHorizontal: 0 }}>
@@ -158,11 +194,9 @@ export default function Issue() {
           authorizedPerson={authorizedPerson}
           amount={amount}
           expirationDate={expirationDate}
-          qrData={`origami://drawer/issue?t=${txid ?? 'txid'}&f=${
-            fulfillment ?? 'fulfillment'
-          }&u=${authorizedPerson ?? ''}`}
-          message=""
-          setBase64Value={setQRData}
+          qrData={qrDataUrl}
+          message={message}
+          setBase64Value={setQRBase64}
         />
         <View style={styles.formContainer}>
           <Controller
@@ -202,7 +236,19 @@ export default function Issue() {
             control={control}
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
-                label="Authorized Person"
+                label="Authorized Name/ID#"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+              />
+            )}
+          />
+          <Controller
+            name="message"
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                label="Message"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}

@@ -1,6 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { PropsWithChildren } from 'react';
-import { ScrollView, StyleSheet, View, ViewProps } from 'react-native';
+import {
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+  ViewProps,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '@/utils/colors';
 
@@ -17,17 +25,23 @@ const PageWrapper = ({
         colors={[colors.white, colors.backgroundDarker]}
         style={StyleSheet.absoluteFill}
       />
-      {unsafe ? (
-        children
-      ) : (
-        <SafeAreaView style={styles.safeView}>{children}</SafeAreaView>
-      )}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        {unsafe ? (
+          children
+        ) : (
+          <SafeAreaView style={styles.safeView}>{children}</SafeAreaView>
+        )}
+      </KeyboardAvoidingView>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    minHeight: Dimensions.get('window').height,
     paddingHorizontal: 20,
     paddingVertical: 10,
   },

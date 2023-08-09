@@ -20,11 +20,10 @@ const getXummJwt = () =>
 const isJwtValid = () => {
   console.log('checking jwt', storage);
   const jwt = storage.getString('jwt');
-  console.log({ jwt });
   // expired?
   if (jwt) {
     const parsed = parseJwt(jwt);
-    console.log({ parsed });
+    // console.log({ parsed });
     if (parsed?.exp * 1000 > Date.now()) {
       return true;
     }

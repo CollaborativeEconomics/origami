@@ -39,7 +39,6 @@ const styles = StyleSheet.create({
     // alignItems: 'stretch',
     // justifyContent: 'center',
     flex: 1,
-    backgroundColor: 'red',
     paddingHorizontal: 0,
     paddingVertical: 0,
   },

@@ -26,6 +26,7 @@ export default function TextInput({ label, icons = [], ...props }: Props) {
         <View style={{ flexDirection: 'row', position: 'absolute', right: 10 }}>
           {icons.map(({ icon, onIconPress }) => (
             <Icons
+              key={`icon-${icon}`}
               style={{
                 color: colors.text,
                 marginLeft: 10,

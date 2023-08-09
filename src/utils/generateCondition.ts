@@ -1,4 +1,5 @@
 import cc from 'five-bells-condition';
+import crypto from 'crypto';
 
 import { IssueInput } from "app/drawer/issue";
 

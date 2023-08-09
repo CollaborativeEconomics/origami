@@ -1,25 +1,24 @@
 import { XummPostPayloadBodyJson } from 'xumm-sdk/dist/src/types';
-import * as WebBrowser from 'expo-web-browser'
-import { getXummJwt } from './xummVanilla';
+import { getXummJwt, parseJwt } from './xummVanilla';
 import { Linking } from 'react-native';
 
-const url = 'https://xumm.app/api/v1/jwt/payload';
-const pingUrl = 'https://xumm.app/api/v1/jwt/ping';
+const baseUrl = 'https://xumm.app/api/v1';
+
+const getHeaders = () => ({
+  authorization: `Bearer ${getXummJwt()}`,
+  accept: 'application/json',
+  'content-type': 'application/json'
+})
 
 
 const signPayload = async (payload: XummPostPayloadBodyJson) => {
-  const jwt = getXummJwt();
   const options: RequestInit = {
     method: 'POST',
     body: JSON.stringify(payload),
-    headers: {
-      authorization: `Bearer ${jwt}`,
-      accept: 'application/json',
-      'content-type': 'application/json'
-    }
+    headers: getHeaders()
   };
-  console.log({ payload, jwt })
-  const response = await fetch(url, options).catch(err => console.error('error:' + err));
+  console.log({ payload })
+  const response = await fetch(`${baseUrl}/jwt/payload`, options).catch(err => console.error('error:' + err));
   console.log({ response: JSON.stringify(response) });
   if (response) {
     const json = await response.json();
@@ -32,12 +31,10 @@ const signPayload = async (payload: XummPostPayloadBodyJson) => {
 }
 
 const ping = async () => {
-  const pingUrl = 'https://xumm.app/api/v1/jwt/ping';
-  const jwt = getXummJwt(); // gets from local storage
-  console.log('ping', jwt); // this is what I copied and pasted, and worked
+  const pingUrl = `${baseUrl}/jwt/ping`;
   const response = await fetch(pingUrl, {
     method: 'GET',
-    headers: { Authorization: `Bearer ${jwt}` }
+    headers: getHeaders()
   }).catch(err => console.error('error:' + err));
   console.log({ response: JSON.stringify(response) });
   if (response) {
@@ -46,4 +43,45 @@ const ping = async () => {
   }
 }
 
-export { signPayload, ping }
+// const getTransaction = async (txid: string) => {
+//   const response = await fetch(`${baseUrl}/jwt/xrpl-tx/${txid}`, {
+//     method: 'GET',
+//     headers: getHeaders(),
+//   }).catch(err => console.error('error:' + err));
+//   console.log({ response: JSON.stringify(response), url: `${baseUrl}/jwt/xrpl-tx/${txid}` });
+//   if (response) {
+//     const json = await response.json();
+//     console.log({ json });
+//   }
+// }
+const getTransaction = async (txid: string) => {
+  const jwt = getXummJwt();
+  const { network_endpoint, network_type } = parseJwt(jwt);
+  console.log({ jwt: parseJwt(jwt) });
+  const url = network_type === 'TESTNET'
+    ? 'https://s.altnet.rippletest.net:51234/'
+    : 'https://s1.ripple.com:51234/';
+  // const url = network_endpoint.replace('wss://', 'https://');
+  const txData = {
+    "method": "tx",
+    "params": [
+      {
+        "transaction": txid,
+        "binary": false
+      }
+    ]
+  }
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    method: 'POST',
+    body: JSON.stringify(txData),
+  }).catch(err => console.error('error:' + err));
+  if (!response) return;
+  const json = await response.json();
+  // const json = await response.text();
+  return json;
+}
+
+export { signPayload, ping, getTransaction }

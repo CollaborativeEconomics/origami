@@ -30,6 +30,7 @@ const Receipt = ({
 }) => {
   const qrRef = useRef(null);
   useEffect(() => {
+    console.log({ qrData });
     captureRef(qrRef, {
       format: 'png',
       quality: 1,
