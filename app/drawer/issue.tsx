@@ -106,6 +106,7 @@ export default function Issue() {
   const recipientName = data?.data?.[0]?.name;
 
   const [jwt] = useMMKVString('jwt');
+  console.log({ jwt });
   const { sub: sender } = parseJwt(jwt);
   const {
     isLoading: senderIsLoading,

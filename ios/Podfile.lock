@@ -104,6 +104,8 @@ PODS:
     - React-NativeModulesApple
     - React-RCTAppDelegate
     - ReactCommon/turbomodule/core
+  - ExpoPrint (12.4.2):
+    - ExpoModulesCore
   - ExpoSecureStore (12.3.1):
     - ExpoModulesCore
   - ExpoWebBrowser (12.3.2):
@@ -484,10 +486,8 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-thermal-printer (2.3.6):
+  - react-native-view-shot (3.7.0):
     - React-Core
-  - react-native-thermal-receipt-printer-image-qr (0.1.11):
-    - React
   - React-NativeModulesApple (0.72.3):
     - hermes-engine
     - React-callinvoker
@@ -678,6 +678,7 @@ DEPENDENCIES:
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoPrint (from `../node_modules/expo-print/ios`)
   - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -711,8 +712,7 @@ DEPENDENCIES:
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-quick-crypto (from `../node_modules/react-native-quick-crypto`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - react-native-thermal-printer (from `../node_modules/react-native-thermal-printer`)
-  - react-native-thermal-receipt-printer-image-qr (from `../node_modules/react-native-thermal-receipt-printer-image-qr`)
+  - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -805,6 +805,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-linear-gradient/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoPrint:
+    :path: "../node_modules/expo-print/ios"
   ExpoSecureStore:
     :path: "../node_modules/expo-secure-store/ios"
   ExpoWebBrowser:
@@ -868,10 +870,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-quick-crypto"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
-  react-native-thermal-printer:
-    :path: "../node_modules/react-native-thermal-printer"
-  react-native-thermal-receipt-printer-image-qr:
-    :path: "../node_modules/react-native-thermal-receipt-printer-image-qr"
+  react-native-view-shot:
+    :path: "../node_modules/react-native-view-shot"
   React-NativeModulesApple:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-perflogger:
@@ -943,6 +943,7 @@ SPEC CHECKSUMS:
   ExpoKeepAwake: be4cbd52d9b177cde0fd66daa1913afa3161fc1d
   ExpoLinearGradient: 5966dd5d49872cc9c104fedc8bbc298b6049b2e8
   ExpoModulesCore: f8f3cac222bb0f574c77664d7e05817eaa97434b
+  ExpoPrint: e1531d216196f51b431c7cc4d906e569f79f10e7
   ExpoSecureStore: 57db3b6da8b59046e2057e95bf7738a8027b47c3
   ExpoWebBrowser: 2c788f9c07718a780fe6d8bf2f6195c47609faaa
   EXSplashScreen: c0e7f2d4a640f3b875808ed0b88575538daf6d82
@@ -984,8 +985,7 @@ SPEC CHECKSUMS:
   react-native-quick-base64: 62290829c619fbabca4c41cfec75ae759d08fc1c
   react-native-quick-crypto: 455c1b411db006dba1026a30681ececb19180187
   react-native-safe-area-context: 36cc67648134e89465663b8172336a19eeda493d
-  react-native-thermal-printer: 46f451b2d057ac3429afddb006870aa7ddd70ce9
-  react-native-thermal-receipt-printer-image-qr: 2f7139b5aa6eee5f3d4a0b647e1a48b53aafa9ef
+  react-native-view-shot: f5507655f122e6b104888a11130f267a427f0d57
   React-NativeModulesApple: c57f3efe0df288a6532b726ad2d0322a9bf38472
   React-perflogger: 6bd153e776e6beed54c56b0847e1220a3ff92ba5
   React-RCTActionSheet: c0b62af44e610e69d9a2049a682f5dba4e9dff17

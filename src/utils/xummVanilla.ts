@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import storage from "./storage"
 
 export const parseJwt = (token: string) => {
@@ -24,7 +25,7 @@ const isJwtValid = () => {
   if (jwt) {
     const parsed = parseJwt(jwt);
     console.log({ parsed });
-    if (parsed.exp * 1000 > Date.now()) {
+    if (parsed?.exp * 1000 > Date.now()) {
       return true;
     }
   }
