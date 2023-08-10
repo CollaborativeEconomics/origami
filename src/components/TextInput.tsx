@@ -11,7 +11,7 @@ import { MaterialIcons as Icons } from '@expo/vector-icons';
 
 interface Props extends TextInputProps {
   label: string;
-  icons: Array<{
+  icons?: Array<{
     icon?: (typeof Icons)['defaultProps']['name'];
     onIconPress?: () => void;
   }>;

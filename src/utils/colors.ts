@@ -11,6 +11,8 @@ const colors = {
   border: 'rgba(84,46,25,70)',
   blue: '#3052FF',
   black: '#000000',
+  success: '#00C48C',
+  error: '#FF3D71',
 };
 
 export default colors;

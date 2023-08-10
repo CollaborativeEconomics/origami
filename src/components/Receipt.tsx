@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import useOrigamiStore from '@/store/useOrigamiStore';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
@@ -18,35 +19,55 @@ interface Props {
   setBase64WithoutFulfillment: (base64Value: string) => void;
 }
 
-const Receipt = ({
-  recipient,
-  recipientName,
-  expirationDate,
-  sender,
-  senderName,
-  authorizedPerson,
-  message,
-  qrData,
-  amount,
-  setBase64Value,
-  qrDataWithoutFulfillment,
-  setBase64WithoutFulfillment,
-}) => {
-  const qrRef = useRef(null);
+const Receipt = () => {
+  const {
+    setCurrent,
+    currentTransaction: {
+      txid,
+      condition,
+      expirationDate,
+      fulfillment,
+      sender,
+      senderName,
+      recipient,
+      recipientName,
+      authorizedPerson,
+      message,
+      amount,
+    },
+  } = useOrigamiStore();
+  const QRRef = useRef(null);
   const QRWithoutFulfillmentRef = useRef(null);
+
+  const qrDataUrl = useMemo(
+    () =>
+      `origami://drawer/redeem?txid=${txid ?? 'txid'}&fulfillment=${
+        fulfillment ?? 'fulfillment'
+      }&authorizedUser=${authorizedPerson ?? ''}&message=${
+        message ?? ''
+      }&owner=${sender}&condition=${condition}`,
+    [txid, fulfillment, authorizedPerson, message, sender, condition],
+  );
+  const qrDataUrlWithoutFulfillment = useMemo(
+    () =>
+      `origami://drawer/redeem?txid=${txid ?? 'txid'}&authorizedUser=${
+        authorizedPerson ?? ''
+      }&message=${message ?? ''}&owner=${sender}&condition=${condition}`,
+    [txid, authorizedPerson, message, sender, condition],
+  );
+
   useEffect(() => {
-    console.log({ qrData });
-    captureRef(qrRef, {
+    captureRef(QRRef, {
       format: 'png',
       quality: 1,
       result: 'base64',
-    }).then(setBase64Value);
+    }).then(base64 => setCurrent('qrData', base64));
     captureRef(QRWithoutFulfillmentRef, {
       format: 'png',
       quality: 1,
       result: 'base64',
-    }).then(setBase64WithoutFulfillment);
-  }, [qrData]);
+    }).then(base64 => setCurrent('qrDataWithoutFulfillment', base64));
+  }, [qrDataUrl, qrDataUrlWithoutFulfillment]);
 
   return (
     <View style={styles.container}>
@@ -55,31 +76,19 @@ const Receipt = ({
       <Text>
         Expires {new Date(expirationDate).toLocaleDateString('en-us')}
       </Text>
-      <Text
-        style={styles.horizontalLine}
-        numberOfLines={1}
-        ellipsizeMode="clip"
-      >
-        ====================================================
-      </Text>
       <Text style={styles.extraLargeText}>{amount} XRP</Text>
-      <Text
-        style={styles.horizontalLine}
-        numberOfLines={1}
-        ellipsizeMode="clip"
-      >
-        ====================================================
-      </Text>
       {authorizedPerson && <Text>ID Required for {authorizedPerson}</Text>}
       <Text style={styles.textRow}>Issued by {senderName || sender}</Text>
       {senderName && <Text>{sender}</Text>}
       <Text style={styles.textRow}>{message}</Text>
       <View style={styles.emptySpace} />
-      <View style={styles.qrWrapper} ref={qrRef}>
-        <QRCode value={qrData} size={120} />
-      </View>
-      <View style={styles.qrWrapper} ref={QRWithoutFulfillmentRef}>
-        <QRCode value={qrDataWithoutFulfillment} size={120} />
+      <View style={{ flexDirection: 'row', gap: 20 }}>
+        <View style={styles.qrWrapper} ref={QRRef}>
+          <QRCode value={qrDataUrl} size={120} />
+        </View>
+        <View style={styles.qrWrapper} ref={QRWithoutFulfillmentRef}>
+          <QRCode value={qrDataUrlWithoutFulfillment} size={120} />
+        </View>
       </View>
     </View>
   );

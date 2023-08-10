@@ -1,5 +1,8 @@
 import { Buffer } from 'buffer';
 import storage from "./storage"
+import { parse } from 'path';
+import useOrigamiStore from '@/store/useOrigamiStore';
+import { produce } from 'immer';
 
 export const parseJwt = (token: string) => {
   try {
@@ -11,6 +14,8 @@ export const parseJwt = (token: string) => {
 }
 
 const setXummJwt = (jwt: string) => {
+  const { sub } = parseJwt(jwt);
+  useOrigamiStore.setState(produce(state => (state.currentTransaction.sender = sub)),)
   storage.set('jwt', jwt);
 }
 

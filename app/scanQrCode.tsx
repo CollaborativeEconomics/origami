@@ -7,7 +7,7 @@ export default function ScanQrCode() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const router = useRouter();
-  const { routeOrigin, dataKey } = useLocalSearchParams();
+  const { routeOrigin } = useLocalSearchParams();
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
@@ -20,8 +20,14 @@ export default function ScanQrCode() {
 
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
-    alert(`Bar code with type ${type} and data ${data} has been scanned!`);
-    router.replace(`${routeOrigin}?${dataKey}=${data}`);
+    console.log(
+      `Bar code with type ${type} and data ${data} has been scanned!`,
+    );
+    if (data.match(/origami:\/\//)) {
+      router.replace(data.replace('origami://', ''));
+      return;
+    }
+    router.replace(`${routeOrigin}?data=${data}`);
   };
 
   if (hasPermission === null) {

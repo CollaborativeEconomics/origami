@@ -1,15 +1,11 @@
 import cc from 'five-bells-condition';
 import crypto from 'crypto';
 
-import { IssueInput } from "app/drawer/issue";
-
-export const generateCondition = async (data: IssueInput): Promise<{ condition: string, fulfillmentHex: string }> => {
-  console.log(data);
-
+export const generateCondition = async (): Promise<{ conditionHex: string, fulfillmentHex: string }> => {
   const preimageData = crypto.randomBytes(32) as Buffer;
   const fulfillment = new cc.PreimageSha256();
   fulfillment.setPreimage(preimageData);
-  const condition = fulfillment
+  const conditionHex = fulfillment
     .getConditionBinary()
     .toString('hex')
     .toUpperCase();
@@ -19,7 +15,7 @@ export const generateCondition = async (data: IssueInput): Promise<{ condition: 
     .toUpperCase();
 
   console.log('====================================');
-  console.log({ fulfillmentHex, condition });
+  console.log({ fulfillmentHex, conditionHex });
   console.log('====================================');
-  return { fulfillmentHex, condition };
+  return { fulfillmentHex, conditionHex };
 }

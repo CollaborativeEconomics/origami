@@ -1,3 +1,4 @@
+import Button from '@/components/Button';
 import PageWrapper from '@/components/PageWrapper';
 import colors from '@/utils/colors';
 import { getTransaction, signPayload } from '@/utils/xummApi';
@@ -23,11 +24,14 @@ export default function Redeem() {
   const [jwt] = useMMKVString('jwt');
   const { sub: sender } = parseJwt(jwt);
   console.log({ params });
-  // const router = useRouter();
+  const router = useRouter();
   useEffect(() => {
     if (params.txid && params.fulfillment) {
       setRedeemEnabled(true);
       return;
+    }
+    if (params.qrData) {
+      console.log({ qrData: params.qrData });
     }
     setRedeemEnabled(false);
     // router.replace(`/scanQrCode?routeOrigin=/drawer/redeem&dataKey=qrData`);
@@ -42,11 +46,6 @@ export default function Redeem() {
     // return;
     const payload: XummPostPayloadBodyJson = {
       txjson: {
-        // Account: sender,
-        // Amount: xrpToDrops(formData.amount),
-        // CancelAfter: unixTimeToRippleTime(expirationDate),
-        // FinishAfter: unixTimeToRippleTime(Date.now() + 1000 * 60),
-        // Destination: formData.recipient,
         Condition: params.condition,
         OfferSequence: transaction.result.Sequence,
         Owner: params.owner ?? sender,
@@ -63,45 +62,78 @@ export default function Redeem() {
     signPayload(payload);
   }, [params.fulfillment, params.txid, params.owner, params.condition]);
 
+  const redeemWithChange = useCallback(async () => {
+    redeem();
+  }, []);
+
   return (
     <PageWrapper>
-      <View style={{ flex: 1, justifyContent: 'center' }}>
-        {/* <TouchableOpacity onPress={} style={[styles.submitButton]}>
-          <MaterialIcons name="camera-alt" />
-        </TouchableOpacity> */}
-        <TouchableOpacity
-          disabled={!redeemEnabled}
-          onPress={redeem}
-          style={[
-            styles.submitButton,
-            redeemEnabled ? {} : styles.disabledButton,
-          ]}
-        >
-          <Text
+      <View style={styles.container}>
+        <View style={{ alignItems: 'center' }}>
+          <TouchableOpacity
             style={{
-              color: redeemEnabled ? colors.headerText : colors.disabledText,
-              textAlign: 'center',
+              borderRadius: 10,
+              height: 150,
+              width: 150,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderStyle: 'dashed',
+              padding: 20,
+              alignSelf: 'center',
+              marginTop: 80,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 5,
             }}
+            onPress={() =>
+              router.replace(`/scanQrCode?routeOrigin=/drawer/redeem`)
+            }
           >
-            Redeem
+            <>
+              <MaterialIcons
+                name="qr-code-scanner"
+                size={80}
+                color={colors.disabledText}
+              />
+            </>
+          </TouchableOpacity>
+          <Text style={{ color: colors.disabledText }}>Scan QR Code</Text>
+        </View>
+        <View>
+          <Text style={styles.textRow}>Issued by: {params.owner}</Text>
+          <Text style={styles.textRow}>Transaction ID: {params.txid}</Text>
+          <Text style={styles.textRow}>Condition: {params.condition}</Text>
+          <Text
+            style={[
+              styles.textRow,
+              { color: params.fulfillment ? colors.success : colors.error },
+            ]}
+          >
+            {params.fulfillment ? 'Fulfillable' : 'Not Fulfillable'}
           </Text>
-        </TouchableOpacity>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            text="Redeem"
+            onPress={redeem}
+            disabled={!redeemEnabled}
+            primary
+          />
+          <Button
+            text="Redeem with Change"
+            onPress={redeemWithChange}
+            disabled={!redeemEnabled}
+          />
+        </View>
       </View>
     </PageWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  submitButton: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingVertical: 20,
-    borderRadius: 40,
-    shadowColor: 'rgba(0,0,0,.25)',
-    shadowRadius: 2,
-    shadowOffset: { height: 2, width: 0 },
+  container: { flex: 1, justifyContent: 'space-between' },
+  textRow: {
+    marginBottom: 20,
   },
-  disabledButton: {
-    backgroundColor: colors.disabled,
-  },
+  buttonContainer: { flexDirection: 'row', gap: 20 },
 });

@@ -1,80 +1,52 @@
 import { XummPostPayloadBodyJson } from 'xumm-sdk/dist/src/types';
-import Card from '@/components/Card';
 import PageWrapper from '@/components/PageWrapper';
 import TextInput from '@/components/TextInput';
 import colors from '@/utils/colors';
-import fetchRegistry from '@/utils/fetchRegistry';
-import { useQuery } from '@tanstack/react-query';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import {
-  Linking,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // import * as Crypto from 'expo-crypto';
-import { toRippleTime, unixTimeToRippleTime, xrpToDrops } from '@/utils/ripple';
-import * as WebBrowser from 'expo-web-browser';
+import { unixTimeToRippleTime, xrpToDrops } from '@/utils/ripple';
 import * as Print from 'expo-print';
-import { ping, signPayload } from '@/utils/xummApi';
+import { signPayload } from '@/utils/xummApi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as Clipboard from 'expo-clipboard';
-import * as Camera from 'expo-camera';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Receipt from '@/components/Receipt';
-import storage from '@/utils/storage';
-import { useMMKVString } from 'react-native-mmkv';
-import { parseJwt } from '@/utils/xummVanilla';
 import { generateCondition } from '@/utils/generateCondition';
 import textToHex from '@/utils/textToHex';
 import getReceiptForPrint from '@/utils/getReceiptForPrint';
 import useOrigamiStore from '@/store/useOrigamiStore';
-// import EscPosPrinter, {
-//   getPrinterSeriesByName,
-// } from 'react-native-esc-pos-printer';
-
-export interface IssueInput {
-  recipient: string;
-  authorizedPerson: string;
-  message: string;
-  amount: string;
-}
+import useSaveNameByOrgID from '@/utils/useSaveNameByOrgID';
 
 export default function Issue() {
   const {
-    txid,
-    recipient: recipientParam,
+    setCurrent,
+    currentTransaction: {
+      txid,
+      condition,
+      expirationDate,
+      fulfillment,
+      sender,
+      senderName,
+      recipient,
+      recipientName,
+      authorizedPerson,
+      message,
+      amount,
+      qrData,
+      qrDataWithoutFulfillment,
+    },
+  } = useOrigamiStore();
+  const {
+    txid: txidParam,
+    qrData: recipientParam,
     ...params
   } = useLocalSearchParams<{
-    recipient: string;
+    qrData: string;
     txid: string;
   }>();
-  const {
-    handleSubmit,
-    watch,
-    control,
-    setValue,
-    formState: { errors },
-  } = useForm<IssueInput>({
-    defaultValues: {
-      recipient: recipientParam,
-    },
-  });
-  const [printEnabled, setPrintEnabled] = useState(false);
-  const [expirationDate, setExpirationDate] = useState(
-    Date.now() + 1000 * 60 * 60 * 24,
-  );
-  const [fulfillment, setFulfillment] = useState('');
-  const [conditionString, setCondition] = useState('');
-  const [QRBase64, setQRBase64] = useState('');
-  const [QRWithoutFulfillmentBase64, setQRWithoutFulfillmentBase64] =
-    useState('');
+  const [printEnabled, setPrintEnabled] = useState<boolean>(false);
+
   const router = useRouter();
-  const { addTransaction } = useOrigamiStore();
 
   // initialize
   useEffect(() => {}, []);
@@ -82,69 +54,20 @@ export default function Issue() {
   // handle params
   useEffect(() => {
     if (recipientParam) {
-      setValue('recipient', recipientParam);
+      setCurrent('recipient', recipientParam);
       router.setParams({ recipient: null });
     }
-    if (txid) {
+    if (txidParam) {
       setPrintEnabled(true);
-      addTransaction({ txId: txid, fulfillment, condition: conditionString });
-      storage.set(
-        'tx',
-        JSON.stringify({
-          txid: txid,
-          cid: params.cid,
-          id: params.id,
-          txblob: params.txblob,
-        }),
-      );
       // router.setParams({ txid: null, cid: null, id: null, txblob: null });
     }
-  }, [txid, recipientParam]);
+  }, [txidParam, recipientParam]);
 
-  const [recipient, authorizedPerson, message, amount] = watch([
-    'recipient',
-    'authorizedPerson',
-    'message',
-    'amount',
-  ]);
+  useSaveNameByOrgID(recipient, 'recipientName');
+  useSaveNameByOrgID(sender, 'senderName');
+  console.log({senderName, recipientName, sender})
 
-  const { isLoading, error, data } = useQuery({
-    queryKey: ['orgByWalletAddress', recipient],
-    queryFn: () => fetchRegistry(`organizations?wallet=${recipient}`),
-  });
-
-  const recipientName = data?.data?.[0]?.name;
-
-  const [jwt] = useMMKVString('jwt');
-  const { sub: sender } = parseJwt(jwt);
-  const {
-    isLoading: senderIsLoading,
-    error: senderError,
-    data: senderData,
-  } = useQuery({
-    queryKey: ['orgByWalletAddress', sender],
-    queryFn: () => fetchRegistry(`organizations?wallet=${sender}`),
-  });
-  const senderName = senderData?.data?.[0]?.name;
-
-  const qrDataUrl = useMemo(
-    () =>
-      `origami://drawer/redeem?txid=${txid ?? 'txid'}&fulfillment=${
-        fulfillment ?? 'fulfillment'
-      }&authorizedUser=${authorizedPerson ?? ''}&message=${
-        message ?? ''
-      }&owner=${sender}&condition=${conditionString}`,
-    [txid, fulfillment, authorizedPerson, message, sender, conditionString],
-  );
-  const qrDataUrlWithoutFulfillment = useMemo(
-    () =>
-      `origami://drawer/redeem?txid=${txid ?? 'txid'}&authorizedUser=${
-        authorizedPerson ?? ''
-      }&message=${message ?? ''}&owner=${sender}&condition=${conditionString}`,
-    [txid, authorizedPerson, message, sender, conditionString],
-  );
-
-  const handlePrint = () => {
+  const handlePrint = useCallback(async () => {
     const html = getReceiptForPrint({
       recipient,
       recipientName,
@@ -154,32 +77,51 @@ export default function Issue() {
       amount,
       expirationDate,
       message,
-      qrData: QRBase64,
-      qrDataUrl,
-      qrDataWithoutFulfillment: QRWithoutFulfillmentBase64,
+      qrData,
+      qrDataWithoutFulfillment,
       txid,
     });
-    Print.printAsync({ html });
-  };
+    const success = await Print.printAsync({ html });
+    console.log('print', { success });
+  }, [
+    recipient,
+    recipientName,
+    sender,
+    senderName,
+    authorizedPerson,
+    amount,
+    expirationDate,
+    message,
+    qrData,
+    qrDataWithoutFulfillment,
+    txid,
+  ]);
 
-  const onSubmit = handleSubmit(async (formData: IssueInput) => {
-    const { condition, fulfillmentHex } = await generateCondition(formData);
-    setFulfillment(fulfillmentHex);
-    setCondition(condition);
+  const onSubmit = useCallback(async () => {
+    const { conditionHex, fulfillmentHex } = await generateCondition();
+    setCurrent('condition', conditionHex);
+    setCurrent('fulfillment', fulfillmentHex);
     const payload: XummPostPayloadBodyJson = {
       txjson: {
         Account: sender,
-        Amount: xrpToDrops(formData.amount),
+        Amount: xrpToDrops(amount),
         CancelAfter: unixTimeToRippleTime(expirationDate),
         // FinishAfter: unixTimeToRippleTime(Date.now() + 1000 * 60),
-        Destination: formData.recipient,
+        Destination: recipient,
         TransactionType: 'EscrowCreate',
         Condition: condition,
-        ...(formData.authorizedPerson
+        ...(authorizedPerson
           ? {
               Memo: {
-                MemoType: textToHex('Authorized Person'),
-                MemoData: textToHex(formData.authorizedPerson),
+                MemoType: textToHex('MetaData'),
+                MemoData: textToHex(
+                  JSON.stringify({
+                    message,
+                    authorizedPerson,
+                    senderName,
+                    recipientName,
+                  }),
+                ),
               },
             }
           : {}),
@@ -192,103 +134,57 @@ export default function Issue() {
       },
     };
     signPayload(payload);
-  });
+  }, []);
 
   return (
     <PageWrapper style={{ paddingHorizontal: 0 }}>
       <View style={styles.container}>
-        <Receipt
-          senderName={senderName}
-          sender={sender}
-          recipient={recipient}
-          recipientName={recipientName}
-          authorizedPerson={authorizedPerson}
-          amount={amount}
-          expirationDate={expirationDate}
-          qrData={qrDataUrl}
-          qrDataWithoutFulfillment={qrDataUrlWithoutFulfillment}
-          message={message}
-          setBase64Value={setQRBase64}
-          setBase64WithoutFulfillment={setQRWithoutFulfillmentBase64}
-        />
+        <Receipt />
         <View style={styles.formContainer}>
-          <Controller
-            name="recipient"
-            control={control}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                label="Recipient"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                keyboardType="numeric"
-                icons={[
-                  {
-                    icon: 'camera-alt',
-                    onIconPress: async () => {
-                      // const text = await Camera.;
-                      // onChange(text);
-                      router.replace(
-                        `/scanQrCode?routeOrigin=/drawer/issue&dataKey=recipient`,
-                      );
-                    },
-                  },
-                  {
-                    icon: 'content-copy',
-                    onIconPress: async () => {
-                      const text = await Clipboard.getStringAsync();
-                      onChange(text);
-                    },
-                  },
-                ]}
-              />
-            )}
+          <TextInput
+            label="Recipient"
+            value={recipient}
+            onChangeText={value => setCurrent('recipient', value)}
+            keyboardType="numeric"
+            icons={[
+              {
+                icon: 'camera-alt',
+                onIconPress: async () => {
+                  // const text = await Camera.;
+                  // onChange(text);
+                  router.replace(`/scanQrCode?routeOrigin=/drawer/issue`);
+                },
+              },
+              {
+                icon: 'content-copy',
+                onIconPress: async () => {
+                  const text = await Clipboard.getStringAsync();
+                  setCurrent('recipient', text);
+                },
+              },
+            ]}
           />
-          <Controller
-            name="authorizedPerson"
-            control={control}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                label="Authorized Name/ID#"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-              />
-            )}
+          <TextInput
+            label="Authorized Name/ID#"
+            value={authorizedPerson}
+            onChangeText={value => setCurrent('authorizedPerson', value)}
           />
-          <Controller
-            name="message"
-            control={control}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                label="Message"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-              />
-            )}
+          <TextInput
+            label="Message"
+            value={message}
+            onChangeText={value => setCurrent('message', value)}
           />
-          <Controller
-            name="amount"
-            control={control}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                label="Amount"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                keyboardType="numeric"
-              />
-            )}
+          <TextInput
+            label="Amount"
+            value={amount}
+            onChangeText={value => setCurrent('amount', value)}
+            keyboardType="numeric"
           />
           <Text style={{ marginBottom: 20 }}>
             Expires {new Date(expirationDate).toLocaleDateString(['en-us'])}
           </Text>
           <View style={{ flexDirection: 'row', gap: 15 }}>
-            <TouchableOpacity
-              onPress={handleSubmit(onSubmit)}
-              style={styles.submitButton}
-            >
+            <TouchableOpacity onPress={onSubmit} style={styles.submitButton}>
               <Text style={{ color: colors.headerText, textAlign: 'center' }}>
                 Sign
               </Text>
