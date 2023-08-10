@@ -13,7 +13,9 @@ interface Props {
   message?: string;
   authorizedPerson?: string;
   qrData: string;
-  setBase64Value?: (base64Value: string) => void;
+  setBase64Value: (base64Value: string) => void;
+  qrDataWithoutFulfillment: string;
+  setBase64WithoutFulfillment: (base64Value: string) => void;
 }
 
 const Receipt = ({
@@ -27,8 +29,11 @@ const Receipt = ({
   qrData,
   amount,
   setBase64Value,
+  qrDataWithoutFulfillment,
+  setBase64WithoutFulfillment,
 }) => {
   const qrRef = useRef(null);
+  const QRWithoutFulfillmentRef = useRef(null);
   useEffect(() => {
     console.log({ qrData });
     captureRef(qrRef, {
@@ -36,6 +41,11 @@ const Receipt = ({
       quality: 1,
       result: 'base64',
     }).then(setBase64Value);
+    captureRef(QRWithoutFulfillmentRef, {
+      format: 'png',
+      quality: 1,
+      result: 'base64',
+    }).then(setBase64WithoutFulfillment);
   }, [qrData]);
 
   return (
@@ -67,6 +77,9 @@ const Receipt = ({
       <View style={styles.emptySpace} />
       <View style={styles.qrWrapper} ref={qrRef}>
         <QRCode value={qrData} size={120} />
+      </View>
+      <View style={styles.qrWrapper} ref={QRWithoutFulfillmentRef}>
+        <QRCode value={qrDataWithoutFulfillment} size={120} />
       </View>
     </View>
   );
@@ -104,7 +117,7 @@ const styles = StyleSheet.create({
   textRow: {
     marginBottom: 5,
   },
-  qrWrapper: { alignItems: 'center' },
+  qrWrapper: { alignItems: 'center', marginBottom: 20, alignSelf: 'center' },
 });
 
 export default Receipt;

@@ -71,6 +71,8 @@ export default function Issue() {
   const [fulfillment, setFulfillment] = useState('');
   const [conditionString, setCondition] = useState('');
   const [QRBase64, setQRBase64] = useState('');
+  const [QRWithoutFulfillmentBase64, setQRWithoutFulfillmentBase64] =
+    useState('');
   const router = useRouter();
   const { addTransaction } = useOrigamiStore();
 
@@ -134,6 +136,13 @@ export default function Issue() {
       }&owner=${sender}&condition=${conditionString}`,
     [txid, fulfillment, authorizedPerson, message, sender, conditionString],
   );
+  const qrDataUrlWithoutFulfillment = useMemo(
+    () =>
+      `origami://drawer/redeem?txid=${txid ?? 'txid'}&authorizedUser=${
+        authorizedPerson ?? ''
+      }&message=${message ?? ''}&owner=${sender}&condition=${conditionString}`,
+    [txid, authorizedPerson, message, sender, conditionString],
+  );
 
   const handlePrint = () => {
     const html = getReceiptForPrint({
@@ -147,6 +156,8 @@ export default function Issue() {
       message,
       qrData: QRBase64,
       qrDataUrl,
+      qrDataWithoutFulfillment: QRWithoutFulfillmentBase64,
+      txid,
     });
     Print.printAsync({ html });
   };
@@ -195,8 +206,10 @@ export default function Issue() {
           amount={amount}
           expirationDate={expirationDate}
           qrData={qrDataUrl}
+          qrDataWithoutFulfillment={qrDataUrlWithoutFulfillment}
           message={message}
           setBase64Value={setQRBase64}
+          setBase64WithoutFulfillment={setQRWithoutFulfillmentBase64}
         />
         <View style={styles.formContainer}>
           <Controller
