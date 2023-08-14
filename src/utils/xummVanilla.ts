@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
 import storage from "./storage"
-import { parse } from 'path';
 import useOrigamiStore from '@/store/useOrigamiStore';
+import { useMMKVString } from 'react-native-mmkv';
 import { produce } from 'immer';
 
 export const parseJwt = (token: string) => {
@@ -15,20 +15,20 @@ export const parseJwt = (token: string) => {
 
 const setXummJwt = (jwt: string) => {
   const { sub } = parseJwt(jwt);
-  useOrigamiStore.setState(produce(state => (state.currentTransaction.sender = sub)),)
   storage.set('jwt', jwt);
+  useOrigamiStore.setState(produce((state) => { state.currentTransaction.sender = sub }))
 }
 
 const getXummJwt = () =>
   storage.getString('jwt');
 
-const isJwtValid = () => {
-  console.log('checking jwt', storage);
-  const jwt = storage.getString('jwt');
+const isJwtValid = (providedJwt?: string) => {
+  const { setCurrent } = useOrigamiStore()
+  const jwt = providedJwt ?? storage.getString('jwt');
   // expired?
   if (jwt) {
     const parsed = parseJwt(jwt);
-    // console.log({ parsed });
+    setCurrent('sender', parsed.sub)
     if (parsed?.exp * 1000 > Date.now()) {
       return true;
     }
@@ -36,4 +36,9 @@ const isJwtValid = () => {
   return false;
 }
 
-export { setXummJwt, getXummJwt, isJwtValid };
+const useJwtIsValid = () => {
+  const [jwt] = useMMKVString('jwt');
+  return isJwtValid(jwt);
+}
+
+export { setXummJwt, getXummJwt, isJwtValid, useJwtIsValid };

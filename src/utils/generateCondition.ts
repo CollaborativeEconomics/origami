@@ -1,10 +1,11 @@
-import cc from 'five-bells-condition';
-import crypto from 'crypto';
+import { PreimageSha256 } from 'five-bells-condition';
+import Crypto from 'crypto';
 
 export const generateCondition = async (): Promise<{ conditionHex: string, fulfillmentHex: string }> => {
-  const preimageData = crypto.randomBytes(32) as Buffer;
-  const fulfillment = new cc.PreimageSha256();
+  const preimageData = Crypto.randomBytes(32) as Buffer;
+  const fulfillment = new PreimageSha256();
   fulfillment.setPreimage(preimageData);
+  
   const conditionHex = fulfillment
     .getConditionBinary()
     .toString('hex')

@@ -1,14 +1,14 @@
-import { storagePersist } from '@/utils/storage'
-import { produce } from 'immer';
+import storage, { storagePersist } from '@/utils/storage'
+import { current, produce } from 'immer';
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 
 export interface Transaction {
-  amount: string;
-  sender: string;
   recipient: string;
   expirationDate: number;
+  sender?: string;
+  amount?: string;
   condition?: string;
   txid?: string;
   fulfillment?: string;
@@ -18,6 +18,7 @@ export interface Transaction {
   message?: string;
   qrData?: string;
   qrDataWithoutFulfillment?: string;
+  rawTransaction?: any
 }
 interface OrigamiState {
   jwt: string;
@@ -27,6 +28,7 @@ interface OrigamiState {
     [txid: string]: Transaction
   };
   addTransaction: (transaction: Transaction) => void;
+  clearCurrentTransaction: () => void,
 }
 
 const useOrigamiStore = create<OrigamiState>()(
@@ -34,10 +36,15 @@ const useOrigamiStore = create<OrigamiState>()(
     jwt: '',
     currentTransaction: {
       expirationDate: Date.now() + 1000 * 60 * 60 * 24,
-      sender: '',
       recipient: '',
-      amount: '0',
     },
+    clearCurrentTransaction: () => set((state) => ({
+      currentTransaction: {
+        sender: state.currentTransaction.sender, // logged in user is always the sender
+        expirationDate: Date.now() + 1000 * 60 * 60 * 24,
+        recipient: '',
+      }
+    })),
     setCurrent: (key: keyof Transaction, value: Transaction[keyof Transaction]) => set(produce((state) => {
       state.currentTransaction[key] = value
     })),

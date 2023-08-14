@@ -1,5 +1,6 @@
 import Button from '@/components/Button';
 import PageWrapper from '@/components/PageWrapper';
+import useOrigamiStore from '@/store/useOrigamiStore';
 import colors from '@/utils/colors';
 import { getTransaction, signPayload } from '@/utils/xummApi';
 import { parseJwt } from '@/utils/xummVanilla';
@@ -8,7 +9,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { useMMKVString } from 'react-native-mmkv';
 import { XummPostPayloadBodyJson } from 'xumm-sdk/dist/src/types';
 
 interface RedeemParams extends Record<string, string | string[]> {
@@ -21,70 +21,77 @@ interface RedeemParams extends Record<string, string | string[]> {
 export default function Redeem() {
   const params = useLocalSearchParams<RedeemParams>();
   const [redeemEnabled, setRedeemEnabled] = useState<boolean>(false);
-  const [jwt] = useMMKVString('jwt');
-  const { sub: sender } = parseJwt(jwt);
-  console.log({ params });
+  console.log('redeem', { params });
   const router = useRouter();
+  const {
+    clearCurrentTransaction,
+    setCurrent,
+    currentTransaction: {
+      sender,
+      txid,
+      condition,
+      fulfillment,
+      message,
+      authorizedPerson,
+    },
+  } = useOrigamiStore();
   useEffect(() => {
-    if (params.txid && params.fulfillment) {
-      setRedeemEnabled(true);
-      return;
-    }
-    if (params.qrData) {
-      console.log({ qrData: params.qrData });
+    if (params.txid) {
+      console.log('has txid');
+      clearCurrentTransaction();
+      setCurrent('txid', params.txid);
+      setCurrent('authorizedPerson', params.authorizedPerson);
+      setCurrent('message', params.message);
+      setCurrent('condition', params.condition);
+      if (params.fulfillment) {
+        console.log('has fulfillment');
+        setRedeemEnabled(true);
+        setCurrent('fulfillment', params.fulfillment);
+        return;
+      }
     }
     setRedeemEnabled(false);
     // router.replace(`/scanQrCode?routeOrigin=/drawer/redeem&dataKey=qrData`);
   }, [params.txid, params.fulfillment]);
 
-  const redeem = useCallback(async () => {
-    const transaction = await getTransaction(params.txid);
-    console.log({
-      sequence: transaction.result.Sequence,
-      condition: params.condition,
-    });
-    // return;
-    const payload: XummPostPayloadBodyJson = {
-      txjson: {
-        Condition: params.condition,
-        OfferSequence: transaction.result.Sequence,
-        Owner: params.owner ?? sender,
-        TransactionType: 'EscrowFinish',
-        Fulfillment: params.fulfillment,
-      },
-      options: {
-        return_url: {
-          app: 'origami://drawer/redeem?success=true',
-          web: 'origami://drawer/redeem?success=true',
+  const redeem = useCallback(
+    async (redirectOverride?: string) => {
+      const transaction = await getTransaction(params.txid);
+      console.log({
+        sequence: transaction.result.Sequence,
+        condition: params.condition,
+        tx: transaction.result,
+      });
+      const payload: XummPostPayloadBodyJson = {
+        txjson: {
+          Condition: params.condition,
+          OfferSequence: transaction.result.Sequence,
+          Owner: transaction.result.Account,
+          TransactionType: 'EscrowFinish',
+          Fulfillment: params.fulfillment,
         },
-      },
-    };
-    signPayload(payload);
-  }, [params.fulfillment, params.txid, params.owner, params.condition]);
+        options: {
+          return_url: {
+            app: redirectOverride ?? 'origami://success',
+            web: redirectOverride ?? 'origami://success',
+          },
+        },
+      };
+      signPayload(payload);
+    },
+    [params.fulfillment, params.txid, params.owner, params.condition],
+  );
 
   const redeemWithChange = useCallback(async () => {
-    redeem();
+    redeem(`origami://drawer/issueChange`);
   }, []);
 
   return (
     <PageWrapper>
       <View style={styles.container}>
-        <View style={{ alignItems: 'center' }}>
+        <View style={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <TouchableOpacity
-            style={{
-              borderRadius: 10,
-              height: 150,
-              width: 150,
-              borderColor: colors.border,
-              borderWidth: 1,
-              borderStyle: 'dashed',
-              padding: 20,
-              alignSelf: 'center',
-              marginTop: 80,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 5,
-            }}
+            style={styles.QRButton}
             onPress={() =>
               router.replace(`/scanQrCode?routeOrigin=/drawer/redeem`)
             }
@@ -99,10 +106,14 @@ export default function Redeem() {
           </TouchableOpacity>
           <Text style={{ color: colors.disabledText }}>Scan QR Code</Text>
         </View>
-        <View>
-          <Text style={styles.textRow}>Issued by: {params.owner}</Text>
-          <Text style={styles.textRow}>Transaction ID: {params.txid}</Text>
-          <Text style={styles.textRow}>Condition: {params.condition}</Text>
+        <View style={styles.textRowContainer}>
+          <Text style={styles.textRow}>Issued by: {sender}</Text>
+          <Text style={styles.textRow}>Transaction ID: {txid}</Text>
+          <Text style={styles.textRow}>Condition: {condition}</Text>
+          <Text style={styles.textRow}>Message: {message}</Text>
+          <Text style={styles.textRow}>
+            Authorized Person: {authorizedPerson}
+          </Text>
           <Text
             style={[
               styles.textRow,
@@ -115,8 +126,8 @@ export default function Redeem() {
         <View style={styles.buttonContainer}>
           <Button
             text="Redeem"
-            onPress={redeem}
             disabled={!redeemEnabled}
+            onPress={() => redeem()}
             primary
           />
           <Button
@@ -131,9 +142,31 @@ export default function Redeem() {
 }
 
 const styles = StyleSheet.create({
+  QRButton: {
+    borderRadius: 10,
+    height: 120,
+    width: 120,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    padding: 20,
+    alignSelf: 'center',
+    marginTop: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 5,
+  },
   container: { flex: 1, justifyContent: 'space-between' },
   textRow: {
-    marginBottom: 20,
+    padding: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  textRowContainer: {
+    borderColor: colors.border,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginVertical: 20,
   },
   buttonContainer: { flexDirection: 'row', gap: 20 },
 });

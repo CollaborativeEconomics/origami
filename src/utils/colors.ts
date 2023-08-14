@@ -8,7 +8,7 @@ const colors = {
   text: '#181A21',
   headerText: '#542E19',
   // \/\/\/ same color bu transparency \/\/\/
-  border: 'rgba(84,46,25,70)',
+  border: 'rgba(84,46,25,0.4)',
   blue: '#3052FF',
   black: '#000000',
   success: '#00C48C',

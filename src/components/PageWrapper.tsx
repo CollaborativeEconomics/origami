@@ -12,31 +12,37 @@ const PageWrapper = ({
   ...props
 }: PropsWithChildren<ViewProps & { unsafe?: boolean }>) => {
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={[styles.container, style]}
-      {...props}
-    >
+    <>
       <LinearGradient
         // Background Linear Gradient
         colors={[colors.white, colors.backgroundDarker]}
         style={StyleSheet.absoluteFill}
       />
-      {unsafe ? (
-        children
-      ) : (
-        <SafeAreaView style={styles.safeView}>{children}</SafeAreaView>
-      )}
-    </KeyboardAwareScrollView>
+      <KeyboardAwareScrollView
+        contentContainerStyle={[styles.container, style]}
+        {...props}
+      >
+        {unsafe ? (
+          children
+        ) : (
+          <SafeAreaView style={styles.safeView}>{children}</SafeAreaView>
+        )}
+      </KeyboardAwareScrollView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     minHeight: Dimensions.get('window').height,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    justifyContent: 'space-between',
   },
-  safeView: { flex: 1 },
+  safeView: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    justifyContent: 'space-between',
+  },
 });
 
 export default PageWrapper;

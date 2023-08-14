@@ -145,7 +145,7 @@ const getReceiptForPrint = ({
               height="130"
               src="data:image/png;base64,${qrDataWithoutFulfillment}"
             />
-            <p style="overflow-wrap: break-word; width: 130px;"><b>ID: ${txid}</b></p>
+            <p style="overflow-wrap: break-word; width: 130px; font-size: 9px;"><b>ID: ${txid}</b></p>
             <!-- <p>https://example.com/verify/qr/1234567890</p> -->
           </div>
           <div style="justify-content: flex-end; align-self: center">
@@ -235,7 +235,7 @@ const getReceiptForPrint = ({
             height="130"
             src="data:image/png;base64,${qrData}"
           />
-          <p style="overflow-wrap: break-word; width: 130px"><b>ID: ${txid}</b></p>
+          <p style="overflow-wrap: break-word; width: 130px; font-size: 9px;"><b>ID: ${txid}</b></p>
           <!-- <p>https://example.com/verify/qr/1234567890</p> -->
         </div>
       </div>

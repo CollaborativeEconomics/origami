@@ -1,19 +1,14 @@
 import PageWrapper from '@/components/PageWrapper';
-import colors from '@/utils/colors';
 import { setXummJwt } from '@/utils/xummVanilla';
-import { AppOwnership } from 'expo-constants';
 import { Image } from 'expo-image';
-import { Linking, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   AccessTokenRequest,
-  TokenResponse,
-  fetchDiscoveryAsync,
   useAuthRequest,
   useAutoDiscovery,
 } from 'expo-auth-session';
 import { useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 const redirectUri = `origami://`;
 // const redirectUri = AppOwnership.Expo
@@ -25,12 +20,6 @@ const discoveryEndpoint =
   'https://oauth2.xumm.app/.well-known/openid-configuration';
 
 export default function Auth() {
-  console.log('Auth');
-  // const discovery = useAutoDiscovery('https://oauth2.xumm.app/auth');
-  // console.log('====================================');
-  // console.log({ discovery });
-  // console.log('====================================');
-
   const discovery = useAutoDiscovery(discoveryEndpoint);
   const [request, response, promptAsync] = useAuthRequest(
     {
@@ -42,10 +31,6 @@ export default function Auth() {
     discovery,
   );
   const router = useRouter();
-  const params = useLocalSearchParams();
-  console.log('====================================');
-  console.log({ response, params });
-  console.log('====================================');
   useEffect(() => {
     if (response?.type === 'success') {
       const { authorization_code, code, state } = response.params;
@@ -60,6 +45,8 @@ export default function Auth() {
         },
       });
       accessTokenRequest.performAsync(discovery).then(result => {
+        console.log('auth result', result);
+
         if (result.accessToken) {
           setXummJwt(result.accessToken);
           router.replace('/drawer');
@@ -69,48 +56,38 @@ export default function Auth() {
   }, [response?.params?.authorization_code, discovery]);
 
   return (
-    <PageWrapper unsafe style={{ justifyContent: 'center' }}>
-      <View>
+    <PageWrapper unsafe style={styles.wrapper}>
+      <Image
+        source={require('@/assets/splash.png')}
+        style={StyleSheet.absoluteFill}
+      />
+      <TouchableOpacity
+        onPress={async () => {
+          await promptAsync();
+        }}
+      >
         <Image
-          source={require('@/assets/iconTransparent.png')}
-          style={{ width: '100%', height: 200, marginBottom: 80 }}
+          source={require('@/assets/sign-in-with-xumm.png')}
+          style={styles.signInButton}
           contentFit="contain"
         />
-        <TouchableOpacity
-          onPress={async () => {
-            await promptAsync();
-            // Linking.openURL(
-            //   `https://oauth2.xumm.app/auth?client_id=${process.env.EXPO_PUBLIC_XUMM_API_KEY}&redirect_uri=${returnUri}&response_type=token`,
-            // );
-            // console.log('authorize', XummSdk.runtime);
-            // XummSdk.authorize()
-            //   .then(thing => console.log({ thing }))
-            //   .catch(thing2 => console.warn({ thing2 }));
-            // const payload = await XummSdk.payload?.create({
-            //   custom_meta: {
-            //     instruction: 'Sign request from app',
-            //   },
-            //   txjson: {
-            //     TransactionType: 'SignIn',
-            //   },
-            // });
-            // console.log(payload);
-          }}
-        >
-          <Image
-            source={require('@/assets/sign-in-with-xumm.png')}
-            style={{
-              height: 80,
-              width: '100%',
-              shadowColor: 'rgba(0,0,0,.25)',
-              // shadowOpacity: 0.25,
-              shadowRadius: 2,
-              shadowOffset: { height: 2, width: 0 },
-            }}
-            contentFit="contain"
-          />
-        </TouchableOpacity>
-      </View>
+      </TouchableOpacity>
     </PageWrapper>
   );
 }
+
+const styles = {
+  wrapper: {
+    justifyContent: 'flex-end',
+  },
+  signInButton: {
+    height: 80,
+    width: '80%',
+    alignSelf: 'center',
+    marginBottom: 40,
+    shadowColor: 'rgba(0,0,0,.25)',
+    // shadowOpacity: 0.25,
+    shadowRadius: 2,
+    shadowOffset: { height: 2, width: 0 },
+  },
+};

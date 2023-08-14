@@ -27,3 +27,12 @@ export function xrpToDrops(xrp: string) {
   console.log({ drops });
   return drops;
 }
+
+export function dropsToXrp(drops: string) {
+  const xrp = new BigNumber(drops)
+    .dividedBy(DROPS_PER_XRP)
+    .toString(BASE_TEN);
+
+  console.log({ xrp });
+  return xrp;
+}
